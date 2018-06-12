@@ -13,7 +13,7 @@
 
 using namespace std;
 
-#define MAX_NBR_OF_knights   10
+#define MAX_NBR_OF_knights   15
 #define COUNT_MAX  14 
 
 mutex mtx;
@@ -81,7 +81,6 @@ int Knight::getxPosition()
 void Knight::move()
 {
         
-int yPos, xPos;
 
    while(count<COUNT_MAX && visible)
 
@@ -239,19 +238,77 @@ void drawBorders()
 
 		
 
-		for(int i = 0; i < MAX_NBR_OF_knights; i++)
-		{
-		if(knights.at(i).visible)
-            	{	
-		mvprintw(knights.at(i).getyPosition(), knights.at(i).getxPosition(),"K %d", i ); //draw moving knights
+for(int i = 0; i < MAX_NBR_OF_knights; i++)
+{
+	if(knights.at(i).visible)
+        {	
+	mvprintw(knights.at(i).getyPosition(), knights.at(i).getxPosition(),"K %d", i ); //draw moving knights
+				
 		if(knights.at(i).inside) // mamy jednego w zamku
             	{
-		mvprintw(knights.at(i).getyPosition(), knights.at(i).getxPosition(),"HP:%d DEF:%d DMG:%d",knights.at(i).hp,knights.at(i).def,knights.at(i).dmg);  		
+		mvprintw(knights.at(i).getyPosition(), knights.at(i).getxPosition(),"HP:%d DEF:%d DMG:%d",knights.at(i).hp,knights.at(i).def,knights.at(i).dmg);  						
+			for(int a = 0; a < MAX_NBR_OF_knights; a++)
+			{
+				if(knights.at(a).getyPosition()==47 && knights.at(a).getxPosition()==30 && a!=i)
+				{
+					if((knights.at(i).hp + knights.at(i).def)-knights.at(a).dmg > (knights.at(a).hp + knights.at(a).def) - knights.at(i).dmg)
+					{
+					mvprintw(knights.at(a).getyPosition(), knights.at(a).getxPosition(),"WALKA");
+					refresh();
+					knights.at(i).visible=false;
+					mvprintw(knights.at(a).getyPosition(), knights.at(a).getxPosition(),"HP:%d DEF:%d DMG:%d",knights.at(a).hp,knights.at(a).def,knights.at(a).dmg);
+					cv.notify_one();
+					}
+					else
+					{
+					mvprintw(knights.at(i).getyPosition(), knights.at(i).getxPosition(),"HP:%d DEF:%d DMG:%d",knights.at(i).hp,knights.at(i).def,knights.at(i).dmg);
+					refresh();
+					knights.at(a).visible=false;					
+					}
+				}
+				else if(knights.at(a).getyPosition()==6 && knights.at(a).getxPosition()==80 && a!=i)
+				{
+					if((knights.at(i).hp + knights.at(i).def)-knights.at(a).dmg > (knights.at(a).hp + knights.at(a).def) - knights.at(i).dmg)
+					{
+					mvprintw(knights.at(a).getyPosition(), knights.at(a).getxPosition(),"WALKA");
+					refresh();
+					knights.at(i).visible=false;
+					mvprintw(knights.at(a).getyPosition(), knights.at(a).getxPosition(),"HP:%d DEF:%d DMG:%d",knights.at(a).hp,knights.at(a).def,knights.at(a).dmg);
+					cv.notify_one();
+					}
+					else
+					{
+					mvprintw(knights.at(i).getyPosition(), knights.at(i).getxPosition(),"HP:%d DEF:%d DMG:%d",knights.at(i).hp,knights.at(i).def,knights.at(i).dmg);
+					refresh();	
+					knights.at(a).visible=false;
+					}
+
+
+				}
+				else if(knights.at(a).getyPosition()==32 && knights.at(a).getxPosition()==150 && a!=i)
+				{
+					if((knights.at(i).hp + knights.at(i).def)-knights.at(a).dmg > (knights.at(a).hp + knights.at(a).def) - knights.at(i).dmg)
+					{
+					mvprintw(knights.at(a).getyPosition(), knights.at(a).getxPosition(),"WALKA");
+					refresh();
+					knights.at(i).visible=false;
+					mvprintw(knights.at(a).getyPosition(), knights.at(a).getxPosition(),"HP:%d DEF:%d DMG:%d",knights.at(a).hp,knights.at(a).def,knights.at(a).dmg);
+					cv.notify_one();
+					}
+					else
+					{
+					mvprintw(knights.at(i).getyPosition(), knights.at(i).getxPosition(),"HP:%d DEF:%d DMG:%d",knights.at(i).hp,knights.at(i).def,knights.at(i).dmg);
+					refresh();
+					knights.at(a).visible=false;
+					}
+
+				}								
+			}
 		}
-		}
+	}
 		
 		
-		}
+}
 
 		refresh();   
 
@@ -260,6 +317,12 @@ void drawBorders()
 
 }
 
+void fight()
+{
+
+
+
+}
 
 void createThreads()
 {
@@ -283,6 +346,27 @@ void createThreads()
 
 int main(int argc, char *argv[])
 {
+int ch=getch();
+char key_press;
+switch(ch)
+{
+
+	case 'p':
+	mvprintw(7,12,"[ PAUSED ]");
+	refresh();
+		while(1)
+		{
+			key_press = getch();
+
+if (key_press == 'p')
+        {
+break;
+}
+   }
+break;
+
+}
+
     srand(time(NULL));
     // Initialize ncurses
     initscr();
@@ -293,7 +377,7 @@ int main(int argc, char *argv[])
     refresh();
 
    
-
+thread war{fight};
 thread monitor{drawBorders};	//all drawing
 createThreads();                        
 
@@ -306,7 +390,9 @@ createThreads();
     //Stop drawing
     sleep(1);
     running = false;
+    war.join();
     monitor.join();
+
     //Close ncurses
     endwin();
     return 0;
